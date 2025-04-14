@@ -1,0 +1,93 @@
+
+module Authentication(clk, rst, PWGS, PWdigits, address, q, LogIn, LogOut);
+
+    input clk, rst, PWGS;
+    input[3:0] PWdigits;
+    output reg[4:0] address;
+    input[3:0] q; // ROM outputs one 4-bit digit at a time
+    reg[3:0] Player_Digits[0:3]; // Buffer for storing input digits
+     reg[3:0] State;
+    reg[1:0] digit_index; // Index to track which digit is being checked
+    reg[4:0] password_index; // Index to track which password set is being checked, manage address skip by 4
+    output reg LogIn, LogOut;
+
+    parameter Check_Button = 0, Fetch_Digit = 1,Wait=2,Wait2= 3, Compare_Digit = 4, Update_Digit = 5, Verify_Password = 6, Check_Password = 7, Passed = 8, Failed = 9;
+
+    always @(posedge clk) begin
+        if (rst == 1'b0) begin
+            State <= Check_Button;
+            digit_index <= 0;
+            password_index <= 0;
+            LogIn <= 1'b0;
+            LogOut <= 1'b1;
+	    address <= 5'b00000;
+        end else begin
+            case(State)
+                Check_Button: begin
+                    if (PWGS == 1'b1) begin
+                        Player_Digits[digit_index] <= PWdigits;
+                        if (digit_index == 3) begin
+                            digit_index <= 0;
+                            State <= Fetch_Digit;
+                        end else begin
+                            digit_index <= digit_index + 1'b1;
+                        end
+                    end else begin
+                        State <= Check_Button; end
+                end
+                Fetch_Digit: begin
+                    address <= password_index + digit_index; // Compute address by skipping blocks of 4 for each password
+                    State <= Wait;
+                end
+		Wait: begin  State <= Wait2; end
+		Wait2: begin  State <= Compare_Digit; end
+                Compare_Digit: begin
+                    if (Player_Digits[digit_index] == q) begin
+                        if (digit_index == 3) begin
+                            State <= Verify_Password;
+                        end else begin
+                            digit_index <= digit_index + 1'b1;
+                            State <= Fetch_Digit;
+                        end
+                    end else begin
+                        State <= Update_Digit;
+                    end
+                end
+                Update_Digit: begin
+                    if (digit_index == 3) begin // Last digit checked and no match
+                        if (password_index == 20) begin // Assuming maximum 8 passwords
+                            State <= Failed;
+                        end else begin
+                            password_index <= password_index + 3'b100; // Move to the next password set
+                            digit_index <= 0; // Reset digit index
+                            State <= Fetch_Digit;
+                        end
+                    end else begin
+                        digit_index <= digit_index + 1'b1;
+                        State <= Update_Digit;
+                    end
+                end
+                Verify_Password: begin
+                    State <= Passed;
+                end
+                Passed: begin
+                    LogIn <= 1'b1;
+                    LogOut <= 1'b0;
+                end
+                Failed: begin
+                    LogIn <= 1'b0;
+                    LogOut <= 1'b1;
+                    password_index <= 0; // Reset and start over or handle differently
+                    State <= Check_Button;
+                end
+                default: begin
+                    digit_index <= 0;
+                    password_index <= 0;
+                    State <= Check_Button;
+                    LogIn  <= 1'b0;
+                    LogOut <= 1'b1;
+                end
+            endcase
+        end
+    end
+endmodule
