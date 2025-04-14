@@ -1,0 +1,24 @@
+module LFSRRng(clock,rst,q,enable);
+  input clock,rst,enable;
+  output [3:0] q;
+
+  reg [3:0] LFSR;
+  wire feedback = LFSR[3] ^ (LFSR[2:0]==3'b000);
+
+  always @(posedge clock)
+  begin
+    if (rst == 1'b0) begin
+	LFSR = 4'b1111;
+	end
+    if (enable == 1'b1) begin 
+    LFSR[0] <= feedback;
+    LFSR[1] <= LFSR[0] ^ feedback;
+    LFSR[2] <= LFSR[1];
+    LFSR[3] <= LFSR[2];
+	end
+
+  end
+	
+  	assign q = LFSR;
+endmodule
+

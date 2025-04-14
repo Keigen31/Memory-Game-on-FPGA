@@ -1,0 +1,54 @@
+
+
+//TOP MODULE FOR FINAL PROJECT LAB
+
+module FinalProjectSystem(clk, rst, Load_P1_In, RNG_Out, Load_P1_Out, Reconfig, Timer_enable, Timeout, 
+PWGS,Data_In, PassIn, DoutP, LoseIn, DoutL, PWGS, PWdigits, address, q, LogIn, LogOut, 
+Easy_LED, Medium_LED, Hard_LED, Difficulty_In, Difficulty, Difficulty_button, RNG_Out, Data_In, Data_Out,
+enable, oneSec_pulse, User_num, DUser, PWDigits, reconfig, timer_enable, timeout, digit_ones, digit_tenth, 
+DRNG, Done, DTen, DScore_1, DScore_2, Player_button,NumberTens,digit_config,Data_Out);
+
+input PWGS,Difficulty_button,Player_button,rst;
+reg [3:0] PWdigits, User_num;
+reg
+reg
+
+
+//PW entering button
+ButtonShaper PWGSButtonShaper(PWGS, PW_In, clk, rst);
+//Dificulty button
+ButtonShaper DifficultyButtonShaper(Difficulty_button, Difficulty_In, clk, rst);
+//User's number load in
+ButtonShaper PlayerButttonShaper(Player_button, Load_P1_In, clk, rst);
+
+//Authentiation module for password
+Authentiation PWAuthentiation(clk, rst, PWGS, PWdigits, address, q, LogIn, LogOut);
+
+//Selecting the game difficulty mode
+Difficulty_Selector Difficulty_SelectorM(clk, rst, Easy_LED, Medium_LED, Hard_LED, Difficulty_In, Difficulty, LogIn,NumberTens);
+
+//the game controller 
+GameControl GameController(clk, rst, Load_P1_In, Difficulty, RNG_Out, Load_P1_Out, reconfig, timer_enable, timeout, 
+PWGS,Data_In,digit_config,score_up,Data_Out);
+
+//Score Tracker
+two_digit_score ScoreTracker(score_up,digit_config,ten_place,unit_place,clk,rst);
+
+//The RNG MODULE(Needs to be updated with LFSR Freerunning****
+RNG RNGGenerator(clk, rst, RNG_Out, Data_In);
+
+//Digit Timer MODULE
+Two_Digit_Timer TimerModule(clk, rst, reconfig, timer_enable, timeout, digit_ones, digit_tenth,NumberTens);
+
+//Load register for user button 
+LoadRegister LoadRegister(User_num_button, User_num, clk, rst, Load_P1_Out);
+
+//Seven segement display
+sim_7segSystem RNGDisplay(Data_Out, DRNG); //RNG
+sim_7segSystem TimerOnesDisplay(digit_ones, Done); //Timer 1 
+sim_7segSystem TimerTensDisplay(digit_tenth, DTen); //Timer 2
+sim_7segSystem UserNumDisplay(User_num, DUser); //user num 
+sim_7segSystem ScoreOnesDisplay(unit_place, DScore_1); //Score 1 
+sim_7segSystem ScoreTensDisplay(ten_place, DScore_2); //Score 2 
+
+

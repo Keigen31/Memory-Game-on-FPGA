@@ -1,0 +1,48 @@
+module Digit_Timer(clk, rst, reconfig, timer, timeout, asking, no_more, number);
+	input clk, rst, reconfig, timer, no_more; //no_more = 1: no more to borrow, no_more = 0: there is sth to borrow
+	output reg [3:0] number;
+	output reg asking;
+	output reg timeout; //timeout = 1: no more to borrow, timeout = 0, there is sth to borrow
+
+	always @(posedge clk) begin
+			if(rst == 1'b0) begin
+				number <= 4'b1001;
+				timeout <= 1'b0;
+				asking <= 1'b0;
+			end
+			else begin
+				if(reconfig == 1'b1) begin
+					number <= 4'b1001;
+					timeout <= 1'b0;
+					asking <= 1'b0;
+				end
+				else begin
+				asking <=  1'b0;
+				if(timer == 1) begin
+					if(number == 4'b0000) begin
+						if(no_more == 0) begin
+							number <= 4'b1001;
+							asking <= 1'b1;
+						end
+						else if(no_more == 1)begin
+							timeout <= 1'b1;
+							end
+						end
+					else if(number == 4'b0001) begin
+						if(no_more == 1) begin
+							timeout <= 1'b1;
+							number <= number - 1;
+						end
+						  else begin
+						number <= number - 1;
+						end
+						  end
+					else begin
+					   number <= number - 1;
+						end
+					end
+				end
+ 
+			end
+		end
+endmodule

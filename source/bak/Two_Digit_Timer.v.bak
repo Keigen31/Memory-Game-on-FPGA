@@ -1,0 +1,21 @@
+ module Two_Digit_Timer(clk, rst, reconfig, timer_enable, timeout, digit_ones, digit_tenth); //top level 
+	input clk, rst, reconfig, timer_enable;
+	output timeout;
+	output [3:0] digit_ones, digit_tenth;
+	input [3:0] NumberTens;
+	reg [3:0] NumberOnes = 4'b1001;
+	
+	wire asking;
+	wire no_more;
+	wire blank;
+	//wire one_sec;
+	
+	//OneSecTimer OneSecTimer_instant(timer_enable, clk, rst, one_sec);
+	//module Digit_Timer(clk, rst, reconfig, timer, timeout, asking, answer, number);
+	Digit_Timer Digit_Timer_Tenth(clk, rst, reconfig, asking, no_more, blank, 1'b1, digit_tenth,NumberTens);
+	Digit_Timer Digit_Timer_Ones(clk, rst, reconfig, timer_enable, timeout, asking, no_more, digit_ones,NumberOnes);
+	
+endmodule 
+ 
+
+
